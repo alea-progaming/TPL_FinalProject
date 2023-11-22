@@ -1,14 +1,18 @@
+package TPL;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Objects;
+
+import TPL.lexicalAnalysis;
 
 public class Main {
     public static void main(String[] args) {
+
         JFrame frame = new JFrame();
         frame.setSize(800, 400);
         frame.setLayout(null);
@@ -59,6 +63,11 @@ public class Main {
                             content.append(line).append("\n");
                         }
                         code.setText(content.toString());
+                        if (code.getText().isEmpty()) {
+                            lexical.setEnabled(false);
+                        } else {
+                            lexical.setEnabled(true);
+                        }
                     } catch (IOException exception) {
                         exception.printStackTrace();
                     }
@@ -70,10 +79,13 @@ public class Main {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String codeText = code.getText();
-                String lexicalResult = lexicalAnalysis(codeText);
+                // Create an instance using the constructor
+                lexicalAnalysis lexicalAnalyzer = new lexicalAnalysis(codeText);
+                // Call the analyze() method
+                String lexicalResult = lexicalAnalyzer.analyze();
                 result.setText(lexicalResult);
-
             }
+
         });
 
         syntax.addActionListener(new ActionListener() {
@@ -91,6 +103,14 @@ public class Main {
                 String codeText = code.getText();
             }
         });
+
+        clear.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                result.setText("");
+                code.setText("");
+            }
+        });
     }
 
 
@@ -98,45 +118,9 @@ public class Main {
 
 
 
-    private static String lexicalAnalysis(String code){
-                    String dataTypeRegex = "\\b(int|double|char|String)\\b";
-                    String assignmentOperatorRegex = "=";
-                    String delimiterRegex = ";";
-                    String valueRegex = "\\b(\\d+|\"[^\"]*\"|'[^']*')\\b";
-                    String identifierRegex = "\\b[a-zA-Z_]\\w*\\b";
-
-                    // Combine the regular expressions into a single pattern
-                    String combinedRegex = String.format("(%s)|(%s)|(%s)|(%s)|(%s)", dataTypeRegex, assignmentOperatorRegex,
-                            delimiterRegex, valueRegex, identifierRegex);
-                    Pattern pattern = Pattern.compile(combinedRegex);
-
-                    // Use a StringBuilder to store the result
-                    StringBuilder result = new StringBuilder();
-
-                    // Use a Matcher to find matches in the input code
-                    Matcher matcher = pattern.matcher(code);
-                    while (matcher.find()) {
-                        String match = matcher.group();
-
-                        // Categorize the token based on the matched pattern
-                        if (match.matches(dataTypeRegex)) {
-                            result.append("<data_type> ");
-                        } else if (match.equals("=")) {
-                            result.append("<assignment_operator> ");
-                        } else if (match.equals(";")) {
-                            result.append("<delimiter> ");
-                        } else if (match.matches(valueRegex)) {
-                            result.append("<value> ");
-                        } else if (match.matches(identifierRegex)) {
-                            result.append("<identifier> ");
-                        }
-                    }
-
-                    return result.toString().trim();
-                }
 
 
-            }
+}
 
 
 
