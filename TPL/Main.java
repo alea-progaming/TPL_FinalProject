@@ -6,11 +6,13 @@ import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Objects;
 
-import TPL.lexicalAnalysis;
+//import static TPL.lexicalAnalysis.syntaxAnalysis;
+import static TPL.syntaxAnalysis.syntaxAnalysis;
 
 public class Main {
+    static lexicalAnalysis lexicalAnalyzer;
+    static String lexicalResult;
     public static void main(String[] args) {
 
         JFrame frame = new JFrame();
@@ -48,11 +50,16 @@ public class Main {
         code.setBounds(250, 120, 500, 200);
         frame.add(code);
 
+        lexical.setEnabled(false);
+        syntax.setEnabled(false);
+        semantic.setEnabled(false);
+
 
         // action listeners
         openFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+
                 JFileChooser fileChooser = new JFileChooser();
                 int file = fileChooser.showOpenDialog(null);
                 if (file == JFileChooser.APPROVE_OPTION) {
@@ -61,13 +68,9 @@ public class Main {
                         String line;
                         while ((line = reader.readLine()) != null) {
                             content.append(line).append("\n");
-                        }
-                        code.setText(content.toString());
-                        if (code.getText().isEmpty()) {
-                            lexical.setEnabled(false);
-                        } else {
                             lexical.setEnabled(true);
                         }
+                        code.setText(content.toString());
                     } catch (IOException exception) {
                         exception.printStackTrace();
                     }
@@ -80,21 +83,44 @@ public class Main {
             public void actionPerformed(ActionEvent e) {
                 String codeText = code.getText();
                 // Create an instance using the constructor
-                lexicalAnalysis lexicalAnalyzer = new lexicalAnalysis(codeText);
+                lexicalAnalyzer = new lexicalAnalysis(codeText);
                 // Call the analyze() method
-                String lexicalResult = lexicalAnalyzer.analyze();
+                lexicalResult = lexicalAnalyzer.analyze();
                 result.setText(lexicalResult);
+
+                if (lexicalResult.contains("<error>")) {
+                    result.setText("Lexical analysis failed. Unexpected token. ");
+
+                } else {
+                    result.setText(lexicalResult);
+                    syntax.setEnabled(true);
+                }
             }
 
         });
+
+
 
         syntax.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String codeText = code.getText();
+                lexicalAnalyzer = new lexicalAnalysis(codeText);
+                lexicalResult = lexicalAnalyzer.analyze();
 
+                if (syntaxAnalysis(lexicalResult)) {
+                    result.setText("Syntax analysis passed.");
+                    semantic.setEnabled(true);
+
+                } else {
+                    result.setText("Syntax analysis failed. Invalid syntax.");
+                    //pop up
+
+                }
             }
         });
+
+
 
 
         semantic.addActionListener(new ActionListener() {
@@ -107,21 +133,13 @@ public class Main {
         clear.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                lexical.setEnabled(false);
+                syntax.setEnabled(false);
+                semantic.setEnabled(false);
                 result.setText("");
                 code.setText("");
             }
         });
+
     }
-
-
-
-
-
-
-
-
 }
-
-
-
-
